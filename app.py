@@ -1,20 +1,15 @@
-```python
 import streamlit as st
 import random
 
-# =====================================================
-# PAGE SETTINGS
-# =====================================================
+# Page setup
 st.set_page_config(
     page_title="Composition Quest Adventure",
     page_icon="✏️",
     layout="centered"
 )
 
-# =====================================================
-# GAME DATA
-# =====================================================
-missions = [
+# Questions
+QUESTIONS = [
     {
         "skill": "Character",
         "question": "Which description creates the most interesting character?",
@@ -89,7 +84,7 @@ missions = [
     }
 ]
 
-tips = [
+TIPS = [
     "Use adjectives to describe people and places.",
     "Describe what characters see, hear and feel.",
     "Include a problem and solution.",
@@ -98,40 +93,31 @@ tips = [
     "End your story with a lesson learned."
 ]
 
-# =====================================================
-# SESSION STATE
-# =====================================================
+# Session state
 if "score" not in st.session_state:
     st.session_state.score = 0
 
-if "mission" not in st.session_state:
-    st.session_state.mission = 0
+if "question_index" not in st.session_state:
+    st.session_state.question_index = 0
 
 if "answered" not in st.session_state:
     st.session_state.answered = False
 
-# =====================================================
-# TITLE
-# =====================================================
+# Title
 st.title("🎮 Composition Quest Adventure")
-st.write("Complete all missions and become a Composition Master!")
+st.write("Learn composition writing while playing!")
 
-# =====================================================
-# SCORE
-# =====================================================
+# Score
 st.metric("🏆 Score", st.session_state.score)
 
-progress = st.session_state.mission / len(missions)
+progress = st.session_state.question_index / len(QUESTIONS)
 st.progress(progress)
 
-# =====================================================
-# GAME COMPLETE
-# =====================================================
-if st.session_state.mission >= len(missions):
+# Finished game
+if st.session_state.question_index >= len(QUESTIONS):
 
     st.balloons()
-
-    st.success("🎉 Congratulations! You completed all missions!")
+    st.success("🎉 Congratulations! You completed the game!")
 
     if st.session_state.score >= 60:
         badge = "🏆 Composition Master"
@@ -144,93 +130,85 @@ if st.session_state.mission >= len(missions):
 
     st.header(badge)
 
-    st.write(f"Final Score: **{st.session_state.score}**")
-
     if st.button("🔄 Play Again"):
         st.session_state.score = 0
-        st.session_state.mission = 0
+        st.session_state.question_index = 0
         st.session_state.answered = False
         st.rerun()
 
 else:
 
-    current = missions[st.session_state.mission]
+    current = QUESTIONS[st.session_state.question_index]
 
     st.subheader(
-        f"Mission {st.session_state.mission + 1}: {current['skill']}"
+        f"Mission {st.session_state.question_index + 1}: {current['skill']}"
     )
 
     st.info(current["question"])
 
-    selected = st.radio(
+    selected_answer = st.radio(
         "Choose the best answer:",
         current["options"],
-        key=f"mission_{st.session_state.mission}"
+        key=f"q_{st.session_state.question_index}"
     )
 
-    if st.button("✅ Submit Answer") and not st.session_state.answered:
+    if not st.session_state.answered:
 
-        selected_index = current["options"].index(selected)
+        if st.button("Submit Answer"):
 
-        if selected_index == current["answer"]:
+            selected_index = current["options"].index(selected_answer)
 
-            st.success("🎉 Correct!")
-            st.write(current["explanation"])
-            st.session_state.score += 10
+            if selected_index == current["answer"]:
 
-        else:
+                st.success("✅ Correct!")
+                st.write(current["explanation"])
 
-            st.error("❌ Not quite right.")
+                st.session_state.score += 10
 
-            st.write(
-                f"Correct Answer: **{current['options'][current['answer']]}**"
-            )
+            else:
 
-            st.info(current["explanation"])
+                st.error("❌ Not quite right.")
 
-        st.session_state.answered = True
+                st.write(
+                    "Correct answer: "
+                    + current["options"][current["answer"]]
+                )
 
-    if st.session_state.answered:
+                st.info(current["explanation"])
 
-        if st.button("➡️ Next Mission"):
+            st.session_state.answered = True
+            st.rerun()
 
-            st.session_state.mission += 1
+    else:
+
+        if st.button("Next Mission"):
+
+            st.session_state.question_index += 1
             st.session_state.answered = False
             st.rerun()
 
-# =====================================================
-# WRITING TIP
-# =====================================================
+# Writing tip
 st.divider()
 
 st.subheader("💡 Writing Tip")
+st.info(random.choice(TIPS))
 
-random.seed()
-st.success(random.choice(tips))
-
-# =====================================================
-# SIDEBAR
-# =====================================================
+# Sidebar
 with st.sidebar:
 
     st.header("📚 Story Structure")
 
-    st.write("1️⃣ Character")
-    st.write("2️⃣ Setting")
-    st.write("3️⃣ Problem")
-    st.write("4️⃣ Feelings")
-    st.write("5️⃣ Action")
-    st.write("6️⃣ Ending")
+    st.write("1. Character")
+    st.write("2. Setting")
+    st.write("3. Problem")
+    st.write("4. Feelings")
+    st.write("5. Action")
+    st.write("6. Ending")
 
     st.divider()
 
-    st.write("Earn 10 points for each correct answer!")
-
     if st.button("Reset Game"):
-
         st.session_state.score = 0
-        st.session_state.mission = 0
+        st.session_state.question_index = 0
         st.session_state.answered = False
-
         st.rerun()
-```
